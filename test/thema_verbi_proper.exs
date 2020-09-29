@@ -105,8 +105,53 @@ defmodule ThemaVerbiProper do
         {1, oneof([?., ?-, ?!, ??, ?,])}, {1, range(?0, ?9)}
       ])
     ) do
-      IO.inspect(to_string(v), label: "freq")
+      #IO.inspect(to_string(v), label: "freq")
       true == true
+    end
+  end
+
+  property "To avoid having to micromanage all these calls to make sure everything is preserved" do
+    # To avoid having to micromanage all these calls to make sure everything is preserved, you can instead use the ?SIZED(VarName, Expression) macro,
+    # which introduces the variable VarName into the scope of Expression, bound to the internal size value for the current execution.
+    # This size value changes with every test, so what we do with the macro is change its scale, rather than replacing it wholesale.
+    forall v <- sized(s, resize(s * 35, utf8() )) do
+      #IO.inspect(v, label: "sized+resize")
+      true == true
+    end
+  end
+
+  # make verbose for metrics
+  property "The collect(Value, PropertyResult) function allows you to gather the values of one specific metric per test", [:verbose] do
+    # The collect(Value, PropertyResult) function allows you to gather the values of one specific metric per test and
+    # build stats out of all the runs that happened for a property.
+    # The `metric` argument is the metric from which you want to build statistics—here it’s the binary’s length and
+    # the `test` argument is the result of the property it should return boolean true or false value.
+    forall bin <- binary() do
+          #            test          metric
+          #collect(is_binary(bin), byte_size(bin))
+          # group the values by a given range (by groups of 10)
+          collect(is_binary(bin), to_range(10, byte_size(bin)) )
+      end
+  end
+
+  # make verbose for metrics
+  property "aggregate() is similar to collect()", [:verbose] do
+    # The aggregate() is similar to collect(), with the exception it can take a list of categories to store.
+    # The `metric` argument is the metric from which you want to build statistics—here it’s the binary’s length and
+    # the `test` argument is the result of the property it should return boolean true or false value.
+    suits = [:club, :diamond, :heart, :spade]
+    forall hand <- vector(5, {oneof(suits), choose(1, 13)}) do
+      # always pass
+      #         test   metric
+      aggregate(true,  hand)
+    end
+  end
+
+  # make verbose for metrics
+  property "fake escaping test showcasing aggregation", [:verbose] do
+    # Another interesting case for aggregation is one where we might want to gather metrics on various data categories.
+    forall str <- utf8() do
+      aggregate(escape(str), classes(str))
     end
   end
 
@@ -117,9 +162,19 @@ defmodule ThemaVerbiProper do
     true
   end
 
+  @doc """
+  The to_range/2 function places a value M into a given bucket of size N.
+  """
+  def to_range(m, n) do
+    base = div(n, m)
+    {base * m, (base + 1) * m}
+  end
+
+
   ##
   ## Generators
   #
+
   def my_type() do
     term()
   end
@@ -142,4 +197,29 @@ defmodule ThemaVerbiProper do
   ## Internals
   #
 
+  # this is a check we don't care about
+  defp escape(_), do: true
+
+  defp classes(str) do
+    l = letters(str)
+    n = numbers(str)
+    p = punctuation(str)
+    o = String.length(str) - (l+n+p)
+    [{:letters, to_range(5, l)}, {:numbers, to_range(5, n)}, {:punctuation, to_range(5, p)}, {:others, to_range(5, o)}]
+  end
+
+  defp letters(str) do
+    is_letter = fn c -> (c >= ?a && c <= ?z) || (c >= ?A && c <= ?Z) end
+    length(for <<c::utf8 <- str>>, is_letter.(c), do: 1)
+  end
+
+  defp numbers(str) do
+    is_num = fn c -> c >= ?0 && c <= ?9 end
+    length(for <<c::utf8 <- str>>, is_num.(c), do: 1)
+  end
+
+  defp punctuation(str) do
+    is_punctuation = fn c -> c in '.,;:\'"-' end
+    length(for <<c::utf8 <- str>>, is_punctuation.(c), do: 1)
+  end
 end
