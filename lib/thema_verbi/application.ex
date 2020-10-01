@@ -9,6 +9,7 @@ defmodule ThemaVerbi.Application do
     children = [
       # Starts a worker by calling: ThemaVerbi.Worker.start_link(arg)
       # {ThemaVerbi.Worker, arg}
+      ThemaVerbi.StatelessProperty
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
