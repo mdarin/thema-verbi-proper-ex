@@ -2,6 +2,11 @@
 
 **Proper live documentation with generator usage examples, stateless and statefull properties**
 
+## Strucutre
+
+- test/stateless_property_proper.exs - stateless property testing usage example
+- test/thema_verbi_proper.exs - generators usage example
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
