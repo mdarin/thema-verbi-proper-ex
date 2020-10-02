@@ -3,6 +3,10 @@ defmodule ThemaVerbi.StatelessProperty do
 
   @moduledoc """
   Stack model
+  Imagine that we have got some memory unit.
+  The memory unit contains 8 registers.
+  Every register consists of 16 cells to store numbers.
+  Number per cell.
   """
 
   # count of available registers in whole memory unit
